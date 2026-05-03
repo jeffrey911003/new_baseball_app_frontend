@@ -23,6 +23,9 @@ const { Text } = Typography
 const SET_COLORS = ['#f0883e', '#58a6ff', '#3fb950', '#bc8cff']
 const INITIAL_FILTERS = { ...DEFAULT_FILTERS, batterId: '', pitcherIds: [], pitcherRole: 'All' }
 
+// 定義後端基礎網址
+const API_BASE_URL = "https://new-baseball-app-backend.onrender.com";
+
 export default function App() {
   const [batters, setBatters] = useState([]); 
   const [pitchers, setPitchers] = useState([]); 
@@ -40,8 +43,8 @@ export default function App() {
       try {
         setLoading(true);
         const [resBatters, resPitchers] = await Promise.all([
-          fetch('https://new-baseball-app-backend.onrender.com/api/batters'),
-          fetch('https://new-baseball-app-backend.onrender.com/api/pitchers')
+          fetch(`${API_BASE_URL}/api/batters`),
+          fetch(`${API_BASE_URL}/api/pitchers`)
         ]);
         const bData = await resBatters.json();
         const pData = await resPitchers.json();
@@ -62,23 +65,20 @@ export default function App() {
 
   // 2. 核心數據抓取
   useEffect(() => {
-    // 定義 fetch 函數
     const fetchPitches = async () => {
-      // ⚾ 1. 從 activeFilters 抓取最新狀態，並給予預設值空陣列防呆
       const { 
         batterId, 
         pitcherIds, 
         year, 
         pitcherRole, 
-        pitchTypes = [], // 接收球種
-        zones = [],      // 接收九宮格
-        counts = []      // 接收球數 (好壞球)
+        pitchTypes = [], 
+        zones = [],      
+        counts = []      
       } = activeFilters;
       
       const pId = pitcherIds?.[0] || '';
       const bId = batterId || '';
       
-      // 🚀 關鍵：如果沒選人，直接清空不發請求
       if (!pId && !bId) {
         setAllPitches([]);
         return;
@@ -86,27 +86,20 @@ export default function App() {
 
       setDataLoading(true);
       try {
-        // 強制處理年份參數
         const queryYear = year || 'ALL';
-        
-        // ⚾ 2. 把陣列轉成字串，準備放到網址裡
         const ptParam = pitchTypes.join(','); 
         const zParam = zones.join(',');
         
-        // ⚾ 3. 處理好壞球 (假設前端存的格式是 ["0-1", "2-2"] 這種字串)
         let bParam = '';
         let sParam = '';
-        // 目前後端只支援單一球數篩選，所以我們取第一個點擊的球數來拆解
         if (counts && counts.length > 0) {
           const [b, s] = String(counts[0]).split('-'); 
           if (b !== undefined) bParam = b;
           if (s !== undefined) sParam = s;
         }
 
-        // ⚾ 4. 將所有新參數接上 URL！
-        const url = `https://new-baseball-app-backend.onrender.com/api/pitches?year=${queryYear}&pitcherId=${pId}&batterId=${bId}&pitcherRole=${pitcherRole}&pitchType=${ptParam}&zone=${zParam}&balls=${bParam}&strikes=${sParam}`;
+        const url = `${API_BASE_URL}/api/pitches?year=${queryYear}&pitcherId=${pId}&batterId=${bId}&pitcherRole=${pitcherRole}&pitchType=${ptParam}&zone=${zParam}&balls=${bParam}&strikes=${sParam}`;
         
-        // ⚠️ 你可以在瀏覽器 Console (F12) 看到這行，確認點擊按鈕時網址有沒有變！
         console.log("📡 API Request:", url);
 
         const response = await fetch(url);
@@ -126,16 +119,14 @@ export default function App() {
     };
 
     fetchPitches();
-
-    // 🚀 ⚾ 5. 監聽對象：確保這裡有加上新的條件，這樣點擊時才會觸發 fetch！
   }, [
     activeFilters.batterId, 
     activeFilters.pitcherIds, 
     activeFilters.year, 
     activeFilters.pitcherRole,
-    activeFilters.pitchTypes, // 監聽球種改變
-    activeFilters.zones,      // 監聽九宮格改變
-    activeFilters.counts      // 監聽球數改變
+    activeFilters.pitchTypes, 
+    activeFilters.zones,      
+    activeFilters.counts      
   ]);
   
 
@@ -183,7 +174,7 @@ export default function App() {
       name: `Set ${String.fromCharCode(65 + prev.length)}`, 
       color: SET_COLORS[prev.length], 
       filters: { ...INITIAL_FILTERS, batterId: activeFilters.batterId } 
-    }]);
+     }]);
     setActiveSetId(newId);
   };
 
@@ -197,7 +188,6 @@ export default function App() {
 
   const setsData = useMemo(() => {
     return sets.map(set => {
-      // 🚀 關鍵修正 4：確保每個 Set 的統計數據是基於當前 fetch 回來的 allPitches
       const pitches = set.id === activeSetId ? allPitches : []; 
       return {
         ...set,
