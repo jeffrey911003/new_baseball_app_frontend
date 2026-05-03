@@ -40,8 +40,8 @@ export default function App() {
       try {
         setLoading(true);
         const [resBatters, resPitchers] = await Promise.all([
-          fetch('http://127.0.0.1:8000/api/batters'),
-          fetch('http://127.0.0.1:8000/api/pitchers')
+          fetch('https://new-baseball-app-backend.onrender.com/api/batters'),
+          fetch('https://new-baseball-app-backend.onrender.com/api/pitchers')
         ]);
         const bData = await resBatters.json();
         const pData = await resPitchers.json();
@@ -104,7 +104,7 @@ export default function App() {
         }
 
         // ⚾ 4. 將所有新參數接上 URL！
-        const url = `http://127.0.0.1:8000/api/pitches?year=${queryYear}&pitcherId=${pId}&batterId=${bId}&pitcherRole=${pitcherRole}&pitchType=${ptParam}&zone=${zParam}&balls=${bParam}&strikes=${sParam}`;
+        const url = `https://new-baseball-app-backend.onrender.com/api/pitches?year=${queryYear}&pitcherId=${pId}&batterId=${bId}&pitcherRole=${pitcherRole}&pitchType=${ptParam}&zone=${zParam}&balls=${bParam}&strikes=${sParam}`;
         
         // ⚠️ 你可以在瀏覽器 Console (F12) 看到這行，確認點擊按鈕時網址有沒有變！
         console.log("📡 API Request:", url);
